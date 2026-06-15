@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(tree *)",
+      "Bash(docker *)",
+      "Bash(docker compose *)",
+      "Bash(cmake *)",
+      "Bash(make *)",
+      "Bash(ninja *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(uv *)",
+      "Bash(pytest *)",
+      "Bash(pnpm *)",
+      "Bash(npm *)",
+      "Bash(npx *)"
+    ],
+    "deny": []
+  },
+  "skipApprovalForShellCommands": true,
+  "skipApprovalForFileWrites": true
+}

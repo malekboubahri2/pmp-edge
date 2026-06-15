@@ -1,0 +1,55 @@
+# pmp-edge — shared ingress for every app on this host.
+#
+# Owns the only :80 / :443 (reverse proxy) and :53 (DNS) on the Pi. Each app
+# stack publishes NO host ports; it joins the external `edge` network and
+# declares its hostname with Caddy labels, and the proxy routes to it.
+#
+# Deploy this FIRST (it creates the `edge` network), then bring up the apps.
+#   docker compose -p pmp-edge up -d --build
+name: pmp-edge
+
+networks:
+  edge:
+    name: edge          # fixed name so apps can reference it as `external`
+    driver: bridge
+
+services:
+  # ── Reverse proxy + TLS ──────────────────────────────────────────────────
+  # caddy-docker-proxy watches the Docker socket and live-builds Caddy's config
+  # from the `caddy.*` labels on containers attached to the `edge` network.
+  proxy:
+    image: lucaslorentz/caddy-docker-proxy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      CADDY_INGRESS_NETWORKS: edge   # only consider labels on the edge network
+    labels:
+      # Global Caddy options (caddy-docker-proxy maps `caddy.*` labels on the
+      # proxy container itself into the global options block).
+      # Keep plain HTTP usable (wall displays, CA download) — no forced HTTPS
+      # redirect. Drop this line if you want HTTP→HTTPS redirects instead.
+      caddy.auto_https: disable_redirects
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro   # read app labels (RO)
+      - caddy_data:/data       # the ONE internal CA + issued certs persist here
+      - caddy_config:/config
+    networks:
+      - edge
+
+  # ── DNS — wildcard *.BASE_DOMAIN → this Pi ───────────────────────────────
+  # Host networking so it reads the live LAN IP and binds :53 on the LAN. One
+  # wildcard record means new apps need ZERO DNS changes — just pick a subdomain.
+  dns:
+    build: ./dnsmasq
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      BASE_DOMAIN: ${BASE_DOMAIN:-pmp.lan}
+      UPSTREAM_DNS: ${UPSTREAM_DNS:-1.1.1.1}
+      # LAN_IFACE: eth0   # optional — auto-detected from the default route
+
+volumes:
+  caddy_data:
+  caddy_config:

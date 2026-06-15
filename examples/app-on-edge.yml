@@ -1,0 +1,30 @@
+# Example — how ANY app plugs into pmp-edge.
+#
+# Merge these bits into the app's own docker-compose.yml. Three rules:
+#   1. join the external `edge` network
+#   2. publish NO host ports (the edge owns 80/443)
+#   3. declare the hostname + upstream with caddy labels on the web container
+#
+# After this, `docker compose -p <app> up -d` and the app appears at
+# https://<hostname> automatically — no edits to pmp-edge or DNS.
+
+networks:
+  edge:
+    external: true
+    name: edge          # the network pmp-edge created
+  internal: {}          # the app's own private network
+
+services:
+  web:
+    # build: ./web    (or image: …)
+    networks: [edge, internal]
+    labels:
+      caddy: qcl1.pmp.lan                       # subdomain of BASE_DOMAIN
+      caddy.reverse_proxy: "{{upstreams 80}}"   # forward to THIS container's :80
+      caddy.tls: internal                       # internal-CA cert for the hostname
+    # NO `ports:` here — the edge terminates 80/443.
+
+  api:
+    # build: ./server
+    networks: [internal]    # back end stays private; only `web` is routed
+    expose: ["8000"]
