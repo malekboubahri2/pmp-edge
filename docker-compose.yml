@@ -18,7 +18,7 @@ services:
   # caddy-docker-proxy watches the Docker socket and live-builds Caddy's config
   # from the `caddy.*` labels on containers attached to the `edge` network.
   proxy:
-    image: lucaslorentz/caddy-docker-proxy:2-alpine
+    image: lucaslorentz/caddy-docker-proxy:alpine
     restart: unless-stopped
     ports:
       - "80:80"
