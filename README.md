@@ -124,4 +124,14 @@ docker-compose.yml      proxy (caddy-docker-proxy) + dns (dnsmasq)
 dnsmasq/                wildcard *.BASE_DOMAIN → live Pi IP
 examples/app-on-edge.yml  how an app's compose joins
 trust-ca.sh             export the internal CA for clients
+license/                activation/grace gate (signed-token verifier)
+tools/                  vendor tooling: gen-keys.sh + issue_license.py
+docs/activation.md      activation/grace design + how to issue/install licenses
 ```
+
+## Optional: activation / grace gate
+
+Deploy apps **before payment** with a reversible activation gate — they run for
+an evaluation window, then show a polite "Activation required" page until you drop
+in a vendor-signed license (no data touched, unlocks instantly). It's an opt-in
+`forward_auth` check per app. See [`docs/activation.md`](docs/activation.md).

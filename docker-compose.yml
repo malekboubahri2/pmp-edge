@@ -50,6 +50,26 @@ services:
       UPSTREAM_DNS: ${UPSTREAM_DNS:-1.1.1.1}
       # LAN_IFACE: eth0   # optional — auto-detected from the default route
 
+  # ── Activation / grace gate (optional) ──────────────────────────────────
+  # A signed-license verifier the proxy calls via Caddy forward_auth. Apps that
+  # opt in (see examples/app-on-edge.yml) are blocked with an activation page
+  # until a valid vendor-signed token is present. Reversible + non-destructive.
+  # See docs/activation.md.
+  license:
+    build: ./license
+    restart: unless-stopped
+    environment:
+      LICENSE_TOKEN_PATH: /license/token.jwt
+      LICENSE_PUBKEY_PATH: /license/public.pem
+      VENDOR_NAME: ${VENDOR_NAME:-the vendor}
+      VENDOR_CONTACT: ${VENDOR_CONTACT:-}
+    volumes:
+      - ./license/secrets:/license:ro   # provision public.pem + token.jwt here (gitignored)
+      - license-state:/state            # clock-rollback high-water-mark
+    networks:
+      - edge
+
 volumes:
   caddy_data:
   caddy_config:
+  license-state:

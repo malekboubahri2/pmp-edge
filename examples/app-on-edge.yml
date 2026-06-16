@@ -22,6 +22,12 @@ services:
       caddy: qcl1.pmp.lan                       # subdomain of BASE_DOMAIN
       caddy.reverse_proxy: "{{upstreams 80}}"   # forward to THIS container's :80
       caddy.tls: internal                       # internal-CA cert for the hostname
+      # ── Activation gate (opt-in) ──────────────────────────────────────────
+      # Block this app with an activation page until a valid vendor-signed
+      # license is present. Remove these two lines for apps you don't gate.
+      # See docs/activation.md.
+      caddy.forward_auth: license:8080
+      caddy.forward_auth.uri: /verify
     # NO `ports:` here — the edge terminates 80/443.
 
   api:

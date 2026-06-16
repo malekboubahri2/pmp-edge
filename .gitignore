@@ -1,2 +1,6 @@
 .env
 *.crt
+# Vendor signing key + per-deployment license token — never commit.
+license/secrets/
+private.pem
+*.jwt
